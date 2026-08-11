@@ -16,6 +16,7 @@ import DestinationVisualizerPage from './components/DestinationVisualizer';
 import Turkey4XPage from './components/Turkey4XPage';
 import AdminPanel from './components/AdminPanel';
 import UserPanel from './components/UserPanel';
+import BusinessAnalyzer from './components/BusinessAnalyzer';
 import { useAuth } from './contexts/AuthContext';
 import ImmigrationDashboardPage from './components/DashboardPage';
 import SiteFooter from './components/Footer';
@@ -518,6 +519,8 @@ const App: React.FC = () => {
         return <AdminPanel />;
       case 'user_panel':
         return <UserPanel setPage={setPage} />;
+      case 'business_analyzer':
+        return <BusinessAnalyzer />;
       case 'home':
       default:
         return <HomePage setPage={setPage} />;

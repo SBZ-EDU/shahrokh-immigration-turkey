@@ -45,6 +45,7 @@ const SiteHeader: React.FC<SiteHeaderProps> = ({ currentPage, setPage, isAuthent
     { key: 'office_finder' as Page, text: t('header.officeFinder') },
     { key: 'pathway_analyzer' as Page, text: t('header.pathwayAnalyzer') },
     { key: 'immigration_news' as Page, text: t('header.immigrationNews') },
+    { key: 'business_analyzer' as Page, text: '🏢 کسب‌وکار' },
     { key: 'investor' as Page, text: t('header.humanitarianAid') },
     { key: 'user_panel' as Page, text: 'پنل کاربری' },
     { key: 'admin' as Page, text: 'ادمین' },
