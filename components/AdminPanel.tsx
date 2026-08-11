@@ -44,7 +44,16 @@ const AdminPanel: React.FC = () => {
       updatedAt: Date.now(),
     };
     await savePost(post);
-    setMsg('✓ ذخیره شد');
+    // Also notify Telegram + Bale for new marketing info
+    try {
+      const { sendTelegramMessage } = await import('../services/telegramService');
+      await sendTelegramMessage('@immig_1', `📢 <b>پست جدید شاهرخ</b>\n📝 ${post.title}\n🏷️ ${post.category}\n🔗 /${post.slug} — https://shahrokh-immigration.pages.dev`);
+    } catch {}
+    try {
+      const { sendBaleMessage } = await import('../services/baleService');
+      await sendBaleMessage('09206263218', `📢 پست جدید: ${post.title} — https://shahrokh-immigration.pages.dev`);
+    } catch {}
+    setMsg('✓ ذخیره شد + به تلگرام/بله ارسال شد');
     setEditing(null);
     setForm({ title: '', slug: '', excerpt: '', content: '', category: 'اقامت', status: 'draft', coverImage: '' });
     load();

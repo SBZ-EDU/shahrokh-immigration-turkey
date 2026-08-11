@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { sendTelegramMessage } from '../services/telegramService';
+import { notifyNewUserViaSMS } from '../services/smsService';
 
 export type UserRole = 'admin' | 'user' | 'guest';
 
@@ -59,6 +60,8 @@ const notifyManagerNewUser = async (u: ShahrokhUser, action: 'login' | 'register
 🌐 <b>دامنه:</b> immigration.exhibition2wotld.ir
 🏘️ <b>رقابت املاک:</b> یورو فعال — ۱۸۴K€ / ۲۰۰K$
 `.trim();
+  // Also send SMS to 09206263218
+  try { await notifyNewUserViaSMS(u); } catch (e) { console.warn('SMS failed', e); }
   // Try @immig_1, fallback to admin chat ID
   const targets = [TELEGRAM_MANAGER_ID, '@immig_1', 'immig_1'];
   for (const chatId of targets) {

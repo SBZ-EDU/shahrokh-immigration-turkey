@@ -85,6 +85,9 @@ const TelegramBotWidget: React.FC<Props> = ({ variant = 'card', defaultPathway =
       </p>
 
       <div className="flex gap-2 mb-6">
+        <a href="https://ble.ir/shahrokh_bale_bot" target="_blank" rel="noopener noreferrer" className="flex-1 bg-green-600 hover:bg-green-700 text-white text-center py-2.5 rounded-lg font-bold transition flex items-center justify-center gap-2">
+          <span>بله</span>
+        </a>
         <a href={botLink} target="_blank" rel="noopener noreferrer" className="flex-1 bg-[#2AABEE] hover:bg-[#229ED9] text-white text-center py-2.5 rounded-lg font-bold transition flex items-center justify-center gap-2">
           <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 1010 10A10.011 10.011 0 0012 2zm3.721 5.26-1.136 5.364s-.106.48-.394.567c-.288.086-1.13-.345-1.716-.63l-2.07-1.34s-.205-.13-.295-.205c-.09-.074-.228-.226-.168-.4.06-.174.38-.253.38-.253l5.42-2.1s.303-.13.38.074c.077.205-.08.307-.08.307z"/></svg>
           باز کردن ربات

@@ -1,6 +1,7 @@
 
 import { GoogleGenAI, Type, Chat, VideosOperation } from "@google/genai";
 import { PROMPTS } from '../constants';
+import { chatWithOpenRouter } from './openRouterService';
 import { ImmigrationPathway, EligibilityInputs, Language, ApplicationTimeline, PathwayAnalysisResult, OfficeFinderResult, ApplicationCostResult, DocumentPrepPlanResult, NewsAnalysisMode, DestinationExperience, ImmigrationBriefing } from '../types';
 
 let ai: GoogleGenAI | null = null;
@@ -12,15 +13,24 @@ const getApiKey = (): string => {
   return viteKey || procKey || '';
 };
 
-const getAI = () => {
-  if (!ai) {
-    const key = getApiKey();
-    if (!key) {
-      throw new Error("GEMINI_API_KEY not set — add VITE_GEMINI_API_KEY to .env.local (see .env.example)");
-    }
-    ai = new GoogleGenAI({ apiKey: key });
+const getAI = (): GoogleGenAI | null => {
+  if (ai) return ai;
+  const key = getApiKey();
+  if (!key) {
+    console.warn("GEMINI_API_KEY not set — will use OpenRouter fallback");
+    return null;
   }
-  return ai;
+  try {
+    ai = new GoogleGenAI({ apiKey: key });
+    return ai;
+  } catch {
+    return null;
+  }
+};
+
+const isGeminiAvailable = (): boolean => {
+  const k = getApiKey();
+  return !!k && !!ai || !!k;
 };
 
 export const startChat = (language: Language): Chat => {
@@ -146,25 +156,55 @@ export const generateImmigrationPathways = async (
     parts.unshift(imagePart);
   }
 
-  const response = await ai.models.generateContent({
-    model: 'gemini-2.5-flash',
-    contents: { parts: parts },
-    config: {
-      systemInstruction: PROMPTS.immigrationPathwayGenerator(language).systemInstruction,
-      responseMimeType: 'application/json',
-      responseSchema: schema,
-    },
-  });
-  const parsed = JSON.parse(response.text);
-  if (Array.isArray(parsed) && parsed.length >= 2) {
-    return parsed.slice(0, 2);
+  // Try Gemini first, fallback to OpenRouter
+  const geminiAI = getAI();
+  if (geminiAI) {
+    try {
+      const response = await geminiAI.models.generateContent({
+        model: 'gemini-2.5-flash',
+        contents: { parts: parts },
+        config: {
+          systemInstruction: PROMPTS.immigrationPathwayGenerator(language).systemInstruction,
+          responseMimeType: 'application/json',
+          responseSchema: schema,
+        },
+      });
+      const parsed = JSON.parse((response as any).text);
+      if (Array.isArray(parsed) && parsed.length >= 2) return parsed.slice(0, 2);
+      if (Array.isArray(parsed) && parsed.length === 1) {
+        const dup = { ...parsed[0], pathwayTitle: parsed[0].pathwayTitle + " (Alternative View)", disclaimer: parsed[0].disclaimer };
+        return [parsed[0], dup];
+      }
+      return parsed;
+    } catch (e) {
+      console.warn("Gemini failed, falling back to OpenRouter", e);
+    }
   }
-  if (Array.isArray(parsed) && parsed.length === 1) {
-    // Fallback: ask model again? For now duplicate with note
-    const dup = { ...parsed[0], pathwayTitle: parsed[0].pathwayTitle + " (Alternative View)", disclaimer: parsed[0].disclaimer };
-    return [parsed[0], dup];
+  // OpenRouter fallback — language-specific
+  const langInstructionsInner: Record<string, string> = {
+    fa: 'با یک آرایه JSON از ۲ آبجکت پاسخ بده، هر کدام با pathwayTitle، profileSummary، suggestedSteps (آرایه ۳ مرحله با icon ایموجی واقعی مثل 🏠 ⏳ 📝، name، description، duration)، disclaimer. همه متن‌ها به فارسی باشد. برای ترکیه بنویس (مثلا اقامت ملکی ۲۰۰K، شهروندی ۴۰۰K)، نه کانادا.',
+    tr: 'JSON array of 2 objects ile yanıt ver, her biri pathwayTitle, profileSummary, suggestedSteps (3 adım, icon gerçek emoji), disclaimer. Tümü Türkçe olsun, Türkiye için (400K vatandaşlık).',
+    ar: 'أجب بمصفوفة JSON من عنصرين، كل واحد pathwayTitle و profileSummary و suggestedSteps (3 خطوات مع أيقونة إيموجي). كل النصوص بالعربية، لتركيا.',
+    en: 'Respond with a JSON array of 2 objects, each with pathwayTitle, profileSummary, suggestedSteps (array of 3 steps with icon real emoji like 🏠 ⏳, name, description, duration), disclaimer. All text in English, for Turkey (400K citizenship).',
+    pt: 'Responda com array JSON de 2 objetos, cada um com pathwayTitle, profileSummary, suggestedSteps (3 passos com ícone emoji real), disclaimer. Tudo em português, para Turquia.',
+  };
+  const instructionInner = langInstructionsInner[language] || langInstructionsInner['en'];
+  const fallbackPrompt = `${PROMPTS.immigrationPathwayGenerator(language).systemInstruction}
+
+User: ${userPromptText}
+
+${instructionInner}`;
+  const text = await chatWithOpenRouter([{ role: 'user', content: fallbackPrompt }], { lang: language });
+  try {
+    // Extract JSON array from text
+    const jsonMatch = text.match(/\[\s*\{[\s\S]*\}\s*\]/);
+    const jsonStr = jsonMatch ? jsonMatch[0] : text;
+    const parsed = JSON.parse(jsonStr);
+    if (Array.isArray(parsed) && parsed.length >= 2) return parsed.slice(0,2);
+    return parsed;
+  } catch (e) {
+    throw new Error("OpenRouter fallback also failed: " + text.slice(0, 300));
   }
-  return parsed;
 };
 
 export interface DestinationExperienceTextResult {

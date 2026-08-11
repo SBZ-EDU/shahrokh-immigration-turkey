@@ -39,9 +39,10 @@ export const chatWithOpenRouter = async (
     fa: 'شما دستیار گروه مهاجرتی شاهرخ هستید. به فارسی، دوستانه و دقیق جواب دهید. تخصص: مهاجرت ایران به ترکیه (استانبول).',
     tr: 'Sen Shahrokh Göç Grubu asistanısın. Türkçe, dostane ve net cevap ver. Uzmanlık: İran’dan Türkiye’ye göç.',
     ar: 'أنت مساعد مجموعة شاهرخ للهجرة. أجب بالعربية بود واحترافية. التخصص: الهجرة من إيران إلى تركيا.',
-    en: 'You are Shahrokh Immigration assistant. Answer helpfully about Iran to Turkey (Istanbul) immigration.',
+    en: 'You are Shahrokh Immigration assistant. Answer helpfully in English about Iran to Turkey (Istanbul) immigration.',
+    pt: 'Você é assistente do Grupo Shahrokh. Responda em português brasileiro de forma útil sobre imigração Irã-Turquia.',
   };
-  const systemMsg = sysMap[lang] || sysMap['fa'];
+  const systemMsg = sysMap[lang] || sysMap['en'];
   const allMessages = [{ role: 'system' as const, content: systemMsg }, ...messages];
 
   const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {

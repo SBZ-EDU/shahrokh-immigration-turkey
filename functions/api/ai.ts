@@ -17,12 +17,13 @@ export const onRequestPost: PagesFunction<Env> = async (ctx) => {
   }
 
   const sysMap: Record<string, string> = {
-    fa: 'شما دستیار گروه مهاجرتی شاهرخ هستید. به فارسی جواب دهید.',
-    tr: 'Sen Shahrokh asistanısın. Türkçe cevap ver.',
-    ar: 'أنت مساعد شاهرخ. أجب بالعربية.',
-    en: 'You are Shahrokh assistant.',
+    fa: 'شما دستیار گروه مهاجرتی شاهرخ هستید. به فارسی، دوستانه و دقیق جواب دهید. تخصص: مهاجرت ایران به ترکیه.',
+    tr: 'Sen Shahrokh Göç Grubu asistanısın. Türkçe, dostane ve net cevap ver.',
+    ar: 'أنت مساعد مجموعة شاهرخ للهجرة. أجب بالعربية بود واحترافية.',
+    en: 'You are Shahrokh Immigration assistant. Answer helpfully in English about Iran to Turkey immigration.',
+    pt: 'Você é assistente do Grupo Shahrokh. Responda em português brasileiro de forma útil sobre imigração Irã-Turquia.',
   };
-  const sys = sysMap[lang] || sysMap['fa'];
+  const sys = sysMap[lang] || sysMap['en'];
 
   try {
     const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
