@@ -1,0 +1,10 @@
+{
+  "name": "AI Immigration Visa Assistant",
+  "description": "Your AI companion for navigating global immigration pathways and visa applications.",
+  "requestFramePermissions": [
+    "camera",
+    "geolocation",
+    "microphone"
+  ],
+  "majorCapabilities": []
+}
